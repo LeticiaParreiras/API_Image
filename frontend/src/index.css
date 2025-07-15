@@ -1,0 +1,33 @@
+div#root{
+  display: flex;
+  flex-direction: column ;
+  justify-content: center;
+}
+
+.UploadImage{
+  margin: auto;
+  text-align: center;
+  gap: 3px;
+  justify-content: center;
+}
+
+.imgs-container{
+  max-width: 900px;
+  margin: 2rem auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem,1fr));
+  gap: 1rem;
+}
+
+.imgs{
+  width: 100%;
+  max-height: fit-content;
+
+}
+
+.imgs img{
+  width: 100%;
+  border-radius: 5px;
+  box-shadow: 1px 1px 3px 1px #00000024;
+  cursor: pointer;
+}
