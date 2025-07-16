@@ -10,7 +10,7 @@ cd API_Image
 ```
 ## Instalando o backend
 ```
-cd backend
+cd Api
 npm install
 ```
 ## Instalando o frontend
@@ -21,7 +21,7 @@ npm install
 # Rodando
 ## Rodando o backend
 ```
-cd backend
+cd Api
 npm run start:dev
 ```
 O backend rodará em http://localhost:3000.
