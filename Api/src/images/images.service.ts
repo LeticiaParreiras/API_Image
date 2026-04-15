@@ -1,41 +1,48 @@
-import { Injectable, MaxFileSizeValidator, ParseFilePipe } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Image } from './entities/image.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Image } from './schema/image.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 
 @Injectable()
 export class ImageService {
   constructor(
-    @InjectRepository(Image)
-    private readonly repo: Repository<Image>,
+    @InjectModel(Image.name)
+    private readonly imageModel: Model<Image>,
   ) {}
 
   async saveImage(file: Express.Multer.File): Promise<Image> {
-    const image = this.repo.create({
+
+    return await this.imageModel.create({
       filename: file.originalname,
       mimetype: file.mimetype,
       data: file.buffer,
     });
-
-    return this.repo.save(image);
   }
 
-  async getImage(id: number): Promise<Image | null> {
-    return this.repo.findOne({ where: { id } });
+ 
+  async getImage(id: string): Promise<Image | null> {
+
+    return this.imageModel.findById(id).exec();
   }
 
-  async list(): Promise<Partial<Image>[]> {
-    const images = await this.repo.find();
+  async list(): Promise<any[]> {
+    const images = await this.imageModel.find().exec();
     return images.map((img) => ({
-      id: img.id,
+      id: img._id,
       filename: img.filename,
       mimetype: img.mimetype,
-      url: `http://localhost:3000/image/${img.id}`,
+      url: `http://localhost:3000/image/${img._id}`,
     }));
   }
-  async deleteImage(id: number) {
-    const image = await this.repo.findOneBy({id});
-    if (!image) return null;
-    return await this.repo.remove(image);
+
+  async deleteImage(id: string) {
+
+    const deleted = await this.imageModel.findByIdAndDelete(id).exec();
+    
+    if (!deleted) {
+      throw new NotFoundException('Imagem não encontrada');
+    }
+    
+    return deleted;
   }
 }

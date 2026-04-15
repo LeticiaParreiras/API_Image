@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useState } from 'react';
 
 
 function UploadImage() {
@@ -11,7 +12,6 @@ function UploadImage() {
   
   async function Upload(){
       try {
-        console.log(selectedFile)
 	   if (!selectedFile) return;
        if (selectedFile.size > 1024 * 1024){
         throw new Error("Arquivo tem que ser menor que 1mb")

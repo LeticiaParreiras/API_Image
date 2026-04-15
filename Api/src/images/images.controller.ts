@@ -37,8 +37,8 @@ file: Express.Multer.File
     const image = await this.ImageService.saveImage(file);
     return {
       message: 'Imagem salva com sucesso no banco!',
-      id: image.id,
-      url: `http://localhost:3000/image/${image.id}`,
+      id: image._id,
+      url: `http://localhost:3000/image/${image._id}`,
     };
   }
 
@@ -48,7 +48,7 @@ file: Express.Multer.File
   }
 
   @Get(':id')
-  async serveImage(@Param('id') id: number, @Res() res: Response) {
+  async serveImage(@Param('id') id: string, @Res() res: Response) {
     const image = await this.ImageService.getImage(id);
     if (!image) {
       throw new NotFoundException('Imagem não encontrada');
@@ -60,7 +60,7 @@ file: Express.Multer.File
 
   @Delete(':id')
   async deleteImage(@Param('id') id: string) {
-    const image = await this.ImageService.deleteImage(+id);
+    const image = await this.ImageService.deleteImage(id);
     if (!image) {
       throw new NotFoundException('Imagem não encontrada');
     }
