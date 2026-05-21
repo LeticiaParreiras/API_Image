@@ -11,6 +11,7 @@ export class Image extends Document {
 
   @Prop({ type: Buffer }) // Equivalente ao 'blob' do SQL
   data: Buffer;
+  
 }
 
 export const ImageSchema = SchemaFactory.createForClass(Image);
