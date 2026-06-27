@@ -27,7 +27,7 @@ export class AuthService {
     if (existUsername) {
       throw new BadRequestException('Username already in use');
     }
-      const existEmail = await this.userModel
+    const existEmail = await this.userModel
       .findOne({
         username: userRegister.username,
       })

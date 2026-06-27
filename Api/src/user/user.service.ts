@@ -15,11 +15,13 @@ export class UserService {
 
   async getUser(currentUser: CurrentUserDto) {
     console.log(currentUser)
-      const user = await this.userModel
-      .findOne({ email: currentUser.useEmail,
-        _id: currentUser.userId
-       })
+    const user = await this.userModel
+      .findOne({ email: currentUser.useEmail, _id: currentUser.userId })
       .exec();
-      return user
+    return user;
+  }
+
+  async getUserByUsername(username: string) {
+    return this.userModel.findOne({ username }).exec();
   }
 }
