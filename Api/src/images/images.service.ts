@@ -45,19 +45,21 @@ export class ImageService {
     return this.imageModel.find({ user: user._id }).exec();
   }
 
-  async list(): Promise<any[]> {
-    const images = await this.imageModel.find().exec();
-    return images.map((img) => ({
-      id: img._id,
-      filename: img.filename,
-      mimetype: img.mimetype,
-      url: `http://localhost:3000/image/${img._id}`,
-    }));
+  async listRecentImages(): Promise<Image[]> {
+    return this.imageModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate('user', 'username')
+      .exec();
   }
 
-  async deleteImage(id: string) {
+  async deleteImage(id: string, userDto: CurrentUserDto) {
 
-    const deleted = await this.imageModel.findByIdAndDelete(id).exec();
+    const deleted = await this.imageModel.findByIdAndDelete({
+      _id: id,
+      user : userDto.userId,
+
+    }).exec();
     
     if (!deleted) {
       throw new NotFoundException('Imagem não encontrada');

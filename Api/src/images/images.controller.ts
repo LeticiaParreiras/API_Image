@@ -18,6 +18,7 @@ import { Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentUserDto } from 'src/auth/dto/current-user.dto';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+import { ImageResponse } from './dto/image.dto';
 
 @Controller('Image')
 export class ImageController {
@@ -29,17 +30,16 @@ export class ImageController {
   async uploadImage(
     @UploadedFile(
       new ParseFilePipe({
-    validators: [
-      new MaxFileSizeValidator({
-        maxSize: 1024 * 1024, // 1 MB
-          message: 'O arquivo deve ter no máximo 1MB.',
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 1024 * 1024, // 1 MB
+            message: 'O arquivo deve ter no máximo 1MB.',
+          }),
+        ],
       }),
-    ],
-  }),
-  
-)
-file: Express.Multer.File,
-@CurrentUser() user: CurrentUserDto
+    )
+    file: Express.Multer.File,
+    @CurrentUser() user: CurrentUserDto,
   ) {
     const image = await this.ImageService.saveImage(file, user);
     return {
@@ -49,19 +49,17 @@ file: Express.Multer.File,
     };
   }
 
-
   @Get('user/:username')
-  async getImagesByUsername(
-    @Param('username') username: string,
-  ) {
+  async getImagesByUsername(@Param('username') username: string): Promise<ImageResponse[]> {
     const images = await this.ImageService.getImagesByUsername(username);
     if (!images) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
     return images.map((img) => ({
-      id: img._id,
       url: `http://localhost:3000/image/${img._id}`,
+      postesAt: img.createdAt,
+      username,
     }));
   }
 
@@ -76,9 +74,19 @@ file: Express.Multer.File,
     res.send(image.data);
   }
 
+  @Get()
+  async getRecentImages(): Promise<ImageResponse[]> {
+    const images = await this.ImageService.listRecentImages();
+    return images.map((img) => ({
+      url: `http://localhost:3000/image/${img._id}`,
+      postesAt: img.createdAt,
+      username: (img.user as any)?.username,
+    }));
+  }
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async deleteImage(@Param('id') id: string) {
-    const image = await this.ImageService.deleteImage(id);
+  async deleteImage(@Param('id') id: string, @CurrentUser() user: CurrentUserDto, ) {
+    const image = await this.ImageService.deleteImage(id, user);
     if (!image) {
       throw new NotFoundException('Imagem não encontrada');
     }
