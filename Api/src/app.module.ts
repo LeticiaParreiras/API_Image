@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { FollowModule } from './follow/follow.module';
 
 @Module({
   imports: [ImagesModule,
@@ -13,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
     UserModule,
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    FollowModule,
   ],
   controllers: [AppController],
   providers: [AppService],
