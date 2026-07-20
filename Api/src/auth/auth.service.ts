@@ -62,7 +62,7 @@ export class AuthService {
     if (storageHash !== hash.toString('hex')) {
       throw new BadRequestException('Credencial invalid');
     }
-    const payload = { useEmail: user.email, sub: user._id };
+    const payload = { username: user.username, sub: user._id };
     return { accessToken: this.jwtService.sign(payload) };
   }
 }

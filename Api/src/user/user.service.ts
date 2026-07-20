@@ -15,7 +15,7 @@ export class UserService {
 
   async getUser(currentUser: CurrentUserDto) {
     const user = await this.userModel
-      .findOne({ email: currentUser.useEmail, _id: currentUser.userId })
+      .findOne({ username: currentUser.username, _id: currentUser.userId })
       .exec();
     return user;
   }
