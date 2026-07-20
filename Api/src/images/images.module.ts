@@ -10,5 +10,6 @@ import { UserModule } from 'src/user/user.module';
   imports: [MongooseModule.forFeature([{ name: Image.name, schema: ImageSchema }]), UserModule],
   controllers: [ImageController],
   providers: [ImageService],
+  exports: [ImageService],
 })
 export class ImagesModule {}

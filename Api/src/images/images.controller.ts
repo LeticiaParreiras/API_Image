@@ -24,31 +24,6 @@ import { ImageResponse } from './dto/image.dto';
 export class ImageController {
   constructor(private readonly ImageService: ImageService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
-  async uploadImage(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize: 1024 * 1024, // 1 MB
-            message: 'O arquivo deve ter no máximo 1MB.',
-          }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-    @CurrentUser() user: CurrentUserDto,
-  ) {
-    const image = await this.ImageService.saveImage(file, user);
-    return {
-      message: 'Imagem salva com sucesso no banco!',
-      id: image._id,
-      url: `http://localhost:3000/image/${image._id}`,
-    };
-  }
-
   @Get('user/:username')
   async getImagesByUsername(@Param('username') username: string): Promise<ImageResponse[]> {
     const images = await this.ImageService.getImagesByUsername(username);
@@ -74,22 +49,4 @@ export class ImageController {
     res.send(image.data);
   }
 
-  @Get()
-  async getRecentImages(): Promise<ImageResponse[]> {
-    const images = await this.ImageService.listRecentImages();
-    return images.map((img) => ({
-      url: `http://localhost:3000/image/${img._id}`,
-      postesAt: img.createdAt,
-      username: (img.user as any)?.username,
-    }));
-  }
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  async deleteImage(@Param('id') id: string, @CurrentUser() user: CurrentUserDto, ) {
-    const image = await this.ImageService.deleteImage(id, user);
-    if (!image) {
-      throw new NotFoundException('Imagem não encontrada');
-    }
-    return { message: 'Imagem deletada com sucesso' };
-  }
 }

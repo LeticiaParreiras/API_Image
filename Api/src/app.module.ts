@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { FollowModule } from './follow/follow.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [ImagesModule,
@@ -15,6 +16,7 @@ import { FollowModule } from './follow/follow.module';
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     FollowModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
