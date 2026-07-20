@@ -8,6 +8,7 @@ export class PostResponseDto {
   numberLikes: number;
   commentsCount: number;
   createdAt: Date;
+  iLike?: boolean;
 }
 
 export class LikeList{

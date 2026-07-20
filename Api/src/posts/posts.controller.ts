@@ -20,6 +20,8 @@ import { PostResponseDto } from './dto/post-response.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { CurrentUserDto } from 'src/auth/dto/current-user.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { OptionalJwtAuthGuard } from 'src/auth/jwt-optional.auth.guard';
 
 @Controller('post')
 export class PostsController {
@@ -51,15 +53,25 @@ export class PostsController {
   }
 
   @Get()
-  async getAllRecentPosts() {
-    const posts = await this.postsService.getAllPosts();
+  @UseGuards(OptionalJwtAuthGuard)
+  async getAllRecentPosts(@CurrentUser() currentUser?: CurrentUserDto) {
+    const posts = await this.postsService.getAllPosts(currentUser);
+    if (!posts) return { mensage: 'No posts found' };
+    return posts
+  }
+
+  @Get('Ifollow')
+  @UseGuards(JwtAuthGuard)
+  async getPostIFollow(@CurrentUser() currentUser: CurrentUserDto){
+    const posts = await this.postsService.getPostsIFollow(currentUser)
     if (!posts) return { mensage: 'No posts found' };
     return posts
   }
 
   @Get('user/:username')
-  async getPostsByUser(@Param('username') username: string) {
-    const posts = await this.postsService.getPostsByUsername(username);
+  @UseGuards(OptionalJwtAuthGuard)
+  async getPostsByUser(@Param('username') username: string, @CurrentUser() currentUser?:CurrentUserDto) {
+    const posts = await this.postsService.getPostsByUsername(username,currentUser );
     if (!posts) return { mensage: 'No posts found' };
     return posts
   }
@@ -76,14 +88,16 @@ export class PostsController {
           imageUrl: `http://localhost:3000/image/${post.image._id}`,
           username: post.user.username,
           commentsCount: post.comments.length,
+          iLike: true,
           createdAt: post.createdAt,
         };
     })
   }
 
   @Get(':id')
-  async getPostById(@Param('id') id: string): Promise<PostResponseDto> {
-    return await this.postsService.getPostById(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async getPostById(@Param('id') id: string, @CurrentUser() CurrentUser?: CurrentUserDto): Promise<PostResponseDto> {
+    return await this.postsService.getPostById(id, CurrentUser);
   }
   @Post('like/:id')
   @UseGuards(JwtAuthGuard)

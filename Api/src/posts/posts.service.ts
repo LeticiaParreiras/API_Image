@@ -13,15 +13,16 @@ import { ImageService } from 'src/images/images.service';
 import { LikePost } from './schema/like-post.schema';
 import { LikeList, PostResponseDto } from './dto/post-response.dto';
 import { UserService } from 'src/user/user.service';
+import { FollowService } from 'src/follow/follow.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<Post>,
-    @InjectModel(Image.name) private imageModel: Model<Image>,
     @InjectModel(LikePost.name) private likePostModel: Model<LikePost>,
     private imageService: ImageService,
     private userService: UserService,
+    private followService: FollowService,
   ) {}
 
   async createPost(
@@ -45,7 +46,7 @@ export class PostsService {
     return post.save();
   }
 
-  async getPostById(id: string): Promise<PostResponseDto> {
+  async getPostById(id: string, currentUser?: CurrentUserDto): Promise<PostResponseDto> {
     const post = await this.postModel
       .findById(id)
       .populate('user', 'username')
@@ -64,13 +65,14 @@ export class PostsService {
       imageUrl: `http://localhost:3000/image/${post.image._id}`,
       username: post.user.username,
       likeBy: postLikes,
+      iLike: postLikes.some((like) => like.username === currentUser?.username),
       numberLikes: postLikes.length,
       commentsCount: post.comments.length,
       createdAt: post.createdAt,
     };
   }
 
-  async getPostsByUsername(username: string): Promise<PostResponseDto[] | null> {
+  async getPostsByUsername(username: string, currentUser?: CurrentUserDto): Promise<PostResponseDto[] | null> {
     const user = await this.userService.getUserByUsername(username)
     const posts = await this.postModel
       .find({ user: user })
@@ -91,6 +93,7 @@ export class PostsService {
           imageUrl: `http://localhost:3000/image/${post.image._id}`,
           username: post.user.username,
           likeBy: postLikes,
+          iLike: postLikes.some((like) => like.username === currentUser?.username),
           numberLikes: postLikes.length,
           commentsCount: post.comments.length,
           createdAt: post.createdAt,
@@ -101,7 +104,39 @@ export class PostsService {
     return postResponse;
   }
 
-  async getAllPosts(): Promise<PostResponseDto[] | null> {
+  async getPostsIFollow(currentUser: CurrentUserDto): Promise<PostResponseDto[] | null> {
+    const iFollow = await this.followService.getUsersFollow(currentUser.username)
+    const followed = iFollow.map((f)=> f.followed)
+    const posts = await this.postModel
+      .find({ user: { $in: followed } })
+        .populate('user', 'username')
+      .populate('image')
+      .sort({ createdAt: -1 })
+      .exec();
+    if (!posts || posts.length === 0) return null;
+
+    const postResponse: PostResponseDto[] = await Promise.all(
+      posts.map(async (post) => {
+        const postLikes = await this.getPostLikes(post.id);
+        console.log(postLikes)
+        return {
+          id: post._id.toString(),
+          text: post.text,
+          imageUrl: `http://localhost:3000/image/${post.image._id}`,
+          username: post.user.username,
+          likeBy: postLikes,
+          iLike: postLikes.some((like) => like.username === currentUser.username),
+          numberLikes: postLikes.length,
+          commentsCount: post.comments.length,
+          createdAt: post.createdAt,
+        };
+      }),
+    );
+    return postResponse;
+  }
+
+  async getAllPosts(currentUser?: CurrentUserDto): Promise<PostResponseDto[] | null> {
+    console.log(currentUser)
     const posts = await this.postModel
       .find()
       .populate('user', 'username')
@@ -120,6 +155,9 @@ export class PostsService {
           imageUrl: `http://localhost:3000/image/${post.image._id}`,
           username: post.user.username,
           likeBy: postLikes,
+          iLike: postLikes.some(
+            (like) => like.username === currentUser?.username,
+          ),
           numberLikes: postLikes.length,
           commentsCount: post.comments.length,
           createdAt: post.createdAt,

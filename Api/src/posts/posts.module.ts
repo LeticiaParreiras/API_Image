@@ -7,6 +7,7 @@ import { Image, ImageSchema } from 'src/images/schema/image.schema';
 import { ImagesModule } from 'src/images/images.module';
 import { LikePost, LikePostSchema } from './schema/like-post.schema';
 import { UserModule } from 'src/user/user.module';
+import { FollowModule } from 'src/follow/follow.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UserModule } from 'src/user/user.module';
     ]),
     ImagesModule,
     UserModule,
+    FollowModule,
   ],
   controllers: [PostsController],
   providers: [PostsService],

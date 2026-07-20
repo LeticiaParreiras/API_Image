@@ -11,5 +11,6 @@ import { UserModule } from 'src/user/user.module';
     UserModule],
   controllers: [FollowController],
   providers: [FollowService],
+  exports: [FollowService],
 })
 export class FollowModule {}
