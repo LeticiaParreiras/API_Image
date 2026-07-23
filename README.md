@@ -1,16 +1,16 @@
-# API_Image
-Uma API simples para armazenamento e recuperação de imagens, feita com **NestJS** no backend e **React** no frontend.
+# Fotografy
+Uma rede social de imagem construída com Nestjs, mongoDB e react. 
 
 # 📦 Instalando 
 
 ```bash
 # clone o projeto
-git clone https://github.com/LeticiaParreiras/API_Image.git
-cd API_Image
+git https://github.com/LeticiaParreiras/Fotografy.git
+cd fotografy
 ```
 ## Instalando o backend
 ```
-cd backend
+cd Api
 npm install
 ```
 ## Instalando o frontend
