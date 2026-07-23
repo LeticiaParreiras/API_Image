@@ -7,6 +7,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { randomBytes, scrypt as _scrypt } from 'crypto';
 import { promisify } from 'util';
 import { SignUserDto } from './dto/sigin-user.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { VerifyTokenResetPasswordDto } from './dto/verify-token-resetPassword.dto';
+import { ChangePasswordforgottenDto } from './dto/change-password-forgotten.dto';
+import { transport } from './../modules/mailer';
 
 const scrypt = promisify(_scrypt);
 
@@ -17,7 +21,12 @@ export class AuthService {
     private readonly userModel: Model<User>,
     private readonly jwtService: JwtService,
   ) {}
-
+  async cryptoPassword(password: string) {
+    const salt = randomBytes(8).toString('hex');
+    const hash = (await scrypt(password, salt, 32)) as Buffer;
+    const saltedHash = salt + '.' + hash.toString('hex');
+    return saltedHash;
+  }
   async register(userRegister: CreateUserDto): Promise<any> {
     const existUsername = await this.userModel
       .findOne({
@@ -36,13 +45,11 @@ export class AuthService {
       throw new BadRequestException('email already in use');
     }
     // salt e hash da senha
-    const salt = randomBytes(8).toString('hex');
-    const hash = (await scrypt(userRegister.password, salt, 32)) as Buffer;
-    const saltedHash = salt + '.' + hash.toString('hex');
+    const password = await this.cryptoPassword(userRegister.password);
 
     const user = await this.userModel.create({
       ...userRegister,
-      password: saltedHash,
+      password: password,
     });
     const { password: _, ...result } = user.toObject();
     return result;
@@ -51,6 +58,7 @@ export class AuthService {
   async signIn(userSignIn: SignUserDto) {
     const user = await this.userModel
       .findOne({ email: userSignIn.email })
+      .select('+password')
       .exec();
 
     if (!user) {
@@ -65,4 +73,64 @@ export class AuthService {
     const payload = { username: user.username, sub: user._id };
     return { accessToken: this.jwtService.sign(payload) };
   }
-}
+
+  async forgotPassword(forgotPasswordBody: ForgotPasswordDto) {
+    const user = await this.userModel
+      .findOne({ email: forgotPasswordBody.email })
+      .exec();
+
+    if (!user) {
+      throw new BadRequestException('User not founded');
+    }
+    const token = randomBytes(2).toString('hex');
+    const dateExpiredToken = new Date();
+    dateExpiredToken.setHours(dateExpiredToken.getHours() + 1);
+    await this.userModel.findByIdAndUpdate(user._id, {
+      $set: {
+        passwordResetToken: token,
+        passwordResetExpires: dateExpiredToken,
+      },
+    });
+
+    await transport.sendMail({
+      to: forgotPasswordBody.email,
+      subject: 'Token Change password fotografy account',
+      from: 'hello@fotografy.com',
+      template: 'forgot-password',
+      context: { token },
+    } as any);
+  }
+  async verifyTokenResetPassword(
+    verifyTokenResetPasswordBody: VerifyTokenResetPasswordDto,
+  ) {
+    const user = await this.userModel
+      .findOne({
+        email: verifyTokenResetPasswordBody.email,
+        passwordResetToken: verifyTokenResetPasswordBody.token,
+      })
+      .select('+passwordResetToken passwordResetExpires')
+      .exec();
+    if (!user) {
+      throw new BadRequestException('Token invalid');
+    }
+    const now = new Date();
+    if (now > user.passwordResetExpires) {
+      throw new BadRequestException('Token expired');
+    }
+    return user;
+  }
+
+  async changePasswordforgotten(
+    changePasswordforgottenBody: ChangePasswordforgottenDto,
+  ) {
+     const user = await this.verifyTokenResetPassword(changePasswordforgottenBody);
+    if(!user){
+      throw new BadRequestException('Token invalid'); 
+    }
+    const newPassword = await this.cryptoPassword(changePasswordforgottenBody.password,);
+      user.password = newPassword;
+      user.passwordResetExpires=new Date()
+      user.save();
+    }
+  }
+

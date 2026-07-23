@@ -15,10 +15,14 @@ export class User extends Document {
   @Prop({ required: true})
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, select: false })
   password: string;
 
+  @Prop({select: false})
+  passwordResetToken: string;
   
+  @Prop({select: false})
+  passwordResetExpires: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
