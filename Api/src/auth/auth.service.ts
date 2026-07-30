@@ -11,6 +11,8 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { VerifyTokenResetPasswordDto } from './dto/verify-token-resetPassword.dto';
 import { ChangePasswordforgottenDto } from './dto/change-password-forgotten.dto';
 import { transport } from './../modules/mailer';
+import { CurrentUserDto } from './dto/current-user.dto';
+import { changePasswordDto } from './dto/change-password.dto';
 
 const scrypt = promisify(_scrypt);
 
@@ -65,9 +67,9 @@ export class AuthService {
       throw new BadRequestException('Credencial invalid');
     }
 
-    const [salt, storageHash] = user.password.split('.');
+    const [salt, storagePasswordHash] = user.password.split('.');
     const hash = (await scrypt(userSignIn.password, salt, 32)) as Buffer;
-    if (storageHash !== hash.toString('hex')) {
+    if (storagePasswordHash !== hash.toString('hex')) {
       throw new BadRequestException('Credencial invalid');
     }
     const payload = { username: user.username, sub: user._id };
@@ -130,7 +132,24 @@ export class AuthService {
     const newPassword = await this.cryptoPassword(changePasswordforgottenBody.password,);
       user.password = newPassword;
       user.passwordResetExpires=new Date()
-      user.save();
+      return user.save();
     }
+  async changePassword(currentUserBody: CurrentUserDto, changePasswordBody:changePasswordDto){
+    const user = await this.userModel.findById(currentUserBody.userId).
+      select('password').exec()
+      if(!user){
+        throw new BadRequestException('ERRO user not found')
+      }
+    const storagePassword = user.password
+    const [salt, storagePasswordHash] = storagePassword.split('.');
+    const bodyPasswordHash = (await scrypt(changePasswordBody.currentPassword, salt, 32)) as Buffer;
+    if (storagePasswordHash !== bodyPasswordHash.toString('hex')) {
+      throw new BadRequestException('Credencial invalid');
+    }
+    const newPassword = await this.cryptoPassword(changePasswordBody.newPassword,);
+    user.password = newPassword
+    return user.save()
+  }
+    
   }
 

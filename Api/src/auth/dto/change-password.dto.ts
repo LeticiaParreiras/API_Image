@@ -1,16 +1,10 @@
-import { IsEmail, IsString, IsStrongPassword, MaxLength } from 'class-validator';
+import { IsString, IsStrongPassword, MaxLength } from "class-validator";
 
-export class CreateUserDto {
-  @IsString()
-  username: string;
+export class changePasswordDto{
+    @IsString()
+    currentPassword: string
 
-  @IsString()
-  name: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsString()
+    @IsString()
   @IsStrongPassword(
     {},
     {
@@ -21,5 +15,5 @@ export class CreateUserDto {
   @MaxLength(12, {
     message: 'Password must be less than 12 characters',
   })
-  password: string;
+    newPassword: string
 }
