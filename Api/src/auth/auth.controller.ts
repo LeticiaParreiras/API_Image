@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SignUserDto } from './dto/sigin-user.dto';
@@ -19,8 +29,21 @@ export class AuthController {
   }
 
   @Post('/login')
-  async login(@Body() signUser: SignUserDto) {
-    return await this.authService.signIn(signUser);
+  async login(
+    @Body() signUser: SignUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.signIn(signUser);
+
+    response.cookie('access_token', result.accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 182 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return { message: 'Login successful' };
   }
 
   @Post('forgot-password')
@@ -49,5 +72,11 @@ export class AuthController {
   ) {
     const result = await this.authService.changePassword(user, changePasswordBody);
     if (result) return { mensage: 'password change sucess', code: 200 };
+  }
+  
+  @Delete('/logout')
+  logout(@Res({ passthrough: true }) response: Response,){
+    response.clearCookie('access_token')
+    return { message: 'logout successful' }
   }
 }

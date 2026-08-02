@@ -2,15 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(config: ConfigService) {
     super({
       secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
-      // aqui diz que o token vai estar no cabeçalho de request como bearer token
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      // e para rejeitar token expirado
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request: Request) => {
+          const tokenFromCookie = request?.cookies?.access_token;
+          if (tokenFromCookie) {
+            return tokenFromCookie;
+          }
+
+          
+        },
+      ]),
       ignoreExpiration: false,
     });
   }
