@@ -4,22 +4,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Post } from './schema/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { CurrentUserDto } from 'src/auth/dto/current-user.dto';
-import { Image } from 'src/images/schema/image.schema';
 import { ImageService } from 'src/images/images.service';
-import { LikePost } from './schema/like-post.schema';
-import { LikeList, PostResponseDto } from './dto/post-response.dto';
+import { PostResponseDto } from './dto/post-response.dto';
 import { UserService } from 'src/user/user.service';
 import { FollowService } from 'src/follow/follow.service';
+import { mapPostToDto } from './dto/map-post-response.sto';
+
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<Post>,
-    @InjectModel(LikePost.name) private likePostModel: Model<LikePost>,
     private imageService: ImageService,
     private userService: UserService,
     private followService: FollowService,
@@ -50,6 +49,7 @@ export class PostsService {
     const post = await this.postModel
       .findById(id)
       .populate('user', 'username')
+      .populate('likeBy', 'username')
       .populate('image')
       .populate('comments');
 
@@ -57,16 +57,15 @@ export class PostsService {
       throw new NotFoundException('Post not founded');
     }
 
-    const postLikes = await this.getPostLikes(post.id);
-    
     return {
       id: post._id.toString(),
       text: post.text,
       imageUrl: `http://localhost:3000/image/${post.image._id}`,
       username: post.user.username,
-      likeBy: postLikes,
-      iLike: postLikes.some((like) => like.username === currentUser?.username),
-      numberLikes: postLikes.length,
+      myPost: post.user.username === currentUser?.username,
+      likeBy: [],
+     iLike: false,
+      numberLikes: post.likeBy.length,
       commentsCount: post.comments.length,
       createdAt: post.createdAt,
     };
@@ -78,30 +77,13 @@ export class PostsService {
       .find({ user: user })
       .populate('user', 'username')
       .populate('image')
+      .populate('likeBy', 'username')
       .sort({ createdAt: -1 })
       .exec();
 
     if (!posts || posts.length === 0) return null;
 
-    const postResponse: PostResponseDto[] = await Promise.all(
-      posts.map(async (post) => {
-        const postLikes = await this.getPostLikes(post.id);
-
-        return {
-          id: post._id.toString(),
-          text: post.text,
-          imageUrl: `http://localhost:3000/image/${post.image._id}`,
-          username: post.user.username,
-          likeBy: postLikes,
-          iLike: postLikes.some((like) => like.username === currentUser?.username),
-          numberLikes: postLikes.length,
-          commentsCount: post.comments.length,
-          createdAt: post.createdAt,
-        };
-      }),
-    );
-
-    return postResponse;
+    return posts.map((post) => mapPostToDto(post, currentUser));
   }
 
   async getPostsIFollow(currentUser: CurrentUserDto): Promise<PostResponseDto[] | null> {
@@ -110,77 +92,28 @@ export class PostsService {
     const posts = await this.postModel
       .find({ user: { $in: followed } })
         .populate('user', 'username')
+        .populate('likeBy', 'username')
       .populate('image')
       .sort({ createdAt: -1 })
       .exec();
     if (!posts || posts.length === 0) return null;
 
-    const postResponse: PostResponseDto[] = await Promise.all(
-      posts.map(async (post) => {
-        const postLikes = await this.getPostLikes(post.id);
-        console.log(postLikes)
-        return {
-          id: post._id.toString(),
-          text: post.text,
-          imageUrl: `http://localhost:3000/image/${post.image._id}`,
-          username: post.user.username,
-          likeBy: postLikes,
-          iLike: postLikes.some((like) => like.username === currentUser.username),
-          numberLikes: postLikes.length,
-          commentsCount: post.comments.length,
-          createdAt: post.createdAt,
-        };
-      }),
-    );
-    return postResponse;
+   return posts.map((post) => mapPostToDto(post, currentUser));
   }
 
   async getAllPosts(currentUser?: CurrentUserDto): Promise<PostResponseDto[] | null> {
-    console.log(currentUser)
     const posts = await this.postModel
       .find()
       .populate('user', 'username')
       .populate('image')
+      .populate('likeBy', 'username')
       .sort({ createdAt: -1 })
       .exec();
     if (!posts || posts.length === 0) return null;
 
-    const postResponse: PostResponseDto[] = await Promise.all(
-      posts.map(async (post) => {
-        const postLikes = await this.getPostLikes(post.id);
-
-        return {
-          id: post._id.toString(),
-          text: post.text,
-          imageUrl: `http://localhost:3000/image/${post.image._id}`,
-          username: post.user.username,
-          likeBy: postLikes,
-          iLike: postLikes.some(
-            (like) => like.username === currentUser?.username,
-          ),
-          numberLikes: postLikes.length,
-          commentsCount: post.comments.length,
-          createdAt: post.createdAt,
-        };
-      }),
-    );
-    return postResponse;
-  }
-  async getPostLikes(postId: string): Promise<LikeList[]>{
-    const likes = await this.likePostModel
-      .find({ post: postId })
-      .populate('likeBy', 'username')
-      .exec();
-
-    return likes.map((l) => {
-      const user = l.likeBy as unknown as { _id: string; username: string };
-      return {
-        id: user._id.toString(),
-        username: user.username,
+    return posts.map((post) => mapPostToDto(post, currentUser));
   }
 
-      });
-    }
   
   async deletePost(postId: string, userDto: CurrentUserDto): Promise<void> {
     const post = await this.postModel
@@ -199,64 +132,55 @@ export class PostsService {
     // Deletar o post
     await this.postModel.deleteOne({ _id: postId });
   }
-  async postILike(user: CurrentUserDto): Promise<Post[]> {
+  async postILike(currentUser: CurrentUserDto): Promise<PostResponseDto[] | null> {
     // Busca os registros de LikePost do usuário e retorna os posts associados
-    const likes = await this.likePostModel
-      .find({ likeBy: new Types.ObjectId(user.userId) })
-      .sort({ createdAt: -1 })
-      .populate({
-        path: 'post',
-        populate: [
-          { path: 'user', select: 'username' },
-          { path: 'text' },
-          { path: 'image' },
-        ],
-      })
+     const posts = await this.postModel
+      .find()
+      .populate('user', 'username')
+      .populate('image')
+      .populate('likeBy', 'username')
+      .where('likeBy').equals(currentUser.userId)
       .exec();
 
-    return likes.map((l) => l.post);
+    if (!posts || posts.length === 0) return null;
+
+    return posts.map((post) => mapPostToDto(post, currentUser));
   }
 
-  async alreadyLike(postId: string, userId: string) {
-    return this.likePostModel
-      .findOne({
-        post: new Types.ObjectId(postId),
-        likeBy: new Types.ObjectId(userId),
-      })
-      .exec();
-  }
 
-  async likePost(postId: string, user: CurrentUserDto): Promise<boolean> {
+
+  async likePost(postId: string, currentUser: CurrentUserDto): Promise<boolean> {
     const post = await this.postModel
       .findById(new Types.ObjectId(postId))
       .exec();
 
     if (!post) throw new NotFoundException('Post not found');
 
-    const userObjId = new Types.ObjectId(user.userId);
-
-    const existing = await this.alreadyLike(postId, user.userId);
+    
+    const existing = post.likeBy.some((id) => id.equals(currentUser.userId));
+    
     if (existing) {
-      return false;
+      return false
     }
+    const userObjId = new Types.ObjectId(currentUser.userId);
 
-    await new this.likePostModel({ post: post._id, likeBy: userObjId }).save();
+    post.likeBy.push(userObjId)
+    await post.save()
 
     return true;
   }
 
-  async unlikePost(postId: string, user: CurrentUserDto): Promise<boolean> {
+  async unlikePost(postId: string, currentUser: CurrentUserDto): Promise<boolean> {
     const post = await this.postModel.findById(postId).exec();
 
     if (!post) throw new NotFoundException('Post not found');
-
-    const existing = await this.alreadyLike(postId, user.userId);
+    const existing = post.likeBy.some((id) => id.equals(currentUser.userId));
     if (!existing) {
       return false;
     }
-
-    await this.likePostModel.deleteOne({ _id: existing._id }).exec();
-
+  const newLikesList = post.likeBy.filter((id) => !id.equals(currentUser.userId));
+    post.likeBy = newLikesList
+    await post.save()
     return true;
   }
 }

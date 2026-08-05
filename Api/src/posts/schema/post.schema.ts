@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, HydratedDocument, Types } from 'mongoose';
 import { User } from 'src/user/schema/user.schema';
 import { Image } from 'src/images/schema/image.schema';
 
@@ -16,10 +16,12 @@ export class Post extends Document {
 
   @Prop({ type: [{ user: mongoose.Schema.Types.ObjectId, text: String, createdAt: Date }], default: [] })
   comments: Array<{
-    user: mongoose.Schema.Types.ObjectId;
+    user: Types.ObjectId;
     text: string;
     createdAt: Date;
   }>;
+ @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
+  likeBy: Types.ObjectId[];
 
   @Prop()
   createdAt: Date;
@@ -29,3 +31,4 @@ export class Post extends Document {
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
+export type PostDocument = HydratedDocument<Post>;

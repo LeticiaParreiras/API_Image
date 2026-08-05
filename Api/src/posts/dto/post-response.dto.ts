@@ -1,7 +1,9 @@
 
+
 export class PostResponseDto {
   id: string;
   username: string;
+  myPost?: boolean;
   text: string;
   imageUrl: string;
   likeBy: LikeList[];
@@ -15,3 +17,4 @@ export class LikeList{
   id: string;
   username: string;
 }
+
