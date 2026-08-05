@@ -7,23 +7,25 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = new DocumentBuilder()
-    .setTitle('Image API')
-    .setDescription('API description')
-    .setVersion('1.0')
-    // 1. Add the global security scheme definition
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT token',
-        in: 'header',
+  const isDevEnv = Number(process.env.IS_DEV_ENV) | 0
+  if (isDevEnv) {
+    const config = new DocumentBuilder()
+      .setTitle('Image API')
+      .setDescription('API description')
+      .setVersion('1.0')
+      .addCookieAuth('access_token', {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'access_token',}
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document,{
+      swaggerOptions: {
+        withCredentials: true,
       },
-      'JWT-auth', // This is the security name (can be anything)
-    )
-    .build();
+    });
+  }
 
   // Habilitar CORS para permitir solicitações de um domínio específico
   app.enableCors({
@@ -39,9 +41,7 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
+  
   await app.listen(process.env.PORT ?? 3000); // Escuta na porta configurada ou 3000 por padrão
 }
 

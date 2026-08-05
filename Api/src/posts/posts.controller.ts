@@ -22,6 +22,7 @@ import { CurrentUser } from 'src/auth/current-user.decorator';
 import { CurrentUserDto } from 'src/auth/dto/current-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OptionalJwtAuthGuard } from 'src/auth/jwt-optional.auth.guard';
+import { ApiConsumes } from '@nestjs/swagger';
 
 @Controller('post')
 export class PostsController {
@@ -29,6 +30,7 @@ export class PostsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('image'))
   async createPost(
     @UploadedFile(
@@ -81,17 +83,7 @@ export class PostsController {
   async getMyLikes(@CurrentUser() user: CurrentUserDto){
     const posts = await this.postsService.postILike(user)
     if (!posts || posts.length == 0) return {message: "You didn't like any post"}
-    return posts.map((post)=>{
-      return {
-          id: post._id.toString(),
-          text: post.text,
-          imageUrl: `http://localhost:3000/image/${post.image._id}`,
-          username: post.user.username,
-          commentsCount: post.comments.length,
-          iLike: true,
-          createdAt: post.createdAt,
-        };
-    })
+    return posts
   }
 
   @Get(':id')
