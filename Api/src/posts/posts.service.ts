@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Post } from './schema/post.schema';
+import { Post, PostDocument } from './schema/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { CurrentUserDto } from 'src/auth/dto/current-user.dto';
 import { ImageService } from 'src/images/images.service';
@@ -13,12 +13,15 @@ import { PostResponseDto } from './dto/post-response.dto';
 import { UserService } from 'src/user/user.service';
 import { FollowService } from 'src/follow/follow.service';
 import { mapPostToDto } from './dto/map-post-response.sto';
+import { PaginateModel } from 'mongoose';
+
 
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<Post>,
+    @InjectModel(Post.name) private readonly postPaginateModel: PaginateModel<PostDocument>,
     private imageService: ImageService,
     private userService: UserService,
     private followService: FollowService,
@@ -71,7 +74,7 @@ export class PostsService {
     };
   }
 
-  async getPostsByUsername(username: string, currentUser?: CurrentUserDto): Promise<PostResponseDto[] | null> {
+  async getPostsByUsername(username: string, currentUser?: CurrentUserDto) {
     const user = await this.userService.getUserByUsername(username)
     const posts = await this.postModel
       .find({ user: user })
@@ -86,32 +89,55 @@ export class PostsService {
     return posts.map((post) => mapPostToDto(post, currentUser));
   }
 
-  async getPostsIFollow(currentUser: CurrentUserDto): Promise<PostResponseDto[] | null> {
+  async getPostsIFollow(currentUser: CurrentUserDto, page=1, limit=10) {
     const iFollow = await this.followService.getUsersFollow(currentUser.username)
+    if (!iFollow || iFollow.length === 0 ) return null
     const followed = iFollow.map((f)=> f.followed)
-    const posts = await this.postModel
-      .find({ user: { $in: followed } })
-        .populate('user', 'username')
-        .populate('likeBy', 'username')
-      .populate('image')
-      .sort({ createdAt: -1 })
-      .exec();
-    if (!posts || posts.length === 0) return null;
+    const result = await this.postPaginateModel.paginate(
+      {user:{$in: followed}}, 
+      {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        populate: [
+          { path: 'user', select: 'username' },
+          { path: 'image' },
+          { path: 'likeBy', select: 'username' },
+        ],
+      },
+    );
+      if (!result || result.docs.length === 0) return null;
 
-   return posts.map((post) => mapPostToDto(post, currentUser));
+    return {
+      totalPages: result.totalPages,
+      page: result.page,
+      hasNextPage: result.hasNextPage,
+      posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
+    }
   }
 
-  async getAllPosts(currentUser?: CurrentUserDto): Promise<PostResponseDto[] | null> {
-    const posts = await this.postModel
-      .find()
-      .populate('user', 'username')
-      .populate('image')
-      .populate('likeBy', 'username')
-      .sort({ createdAt: -1 })
-      .exec();
-    if (!posts || posts.length === 0) return null;
+  async getAllPosts(currentUser?: CurrentUserDto, page = 1, limit = 10) {
+    const result = await this.postPaginateModel.paginate(
+      {}, 
+      {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        populate: [
+          { path: 'user', select: 'username' },
+          { path: 'image' },
+          { path: 'likeBy', select: 'username' },
+        ],
+      },
+    );
+      if (!result || result.docs.length === 0) return null;
 
-    return posts.map((post) => mapPostToDto(post, currentUser));
+    return {
+      totalPages: result.totalPages,
+      page: result.page,
+      hasNextPage: result.hasNextPage,
+      posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
+    }
   }
 
   
@@ -132,22 +158,29 @@ export class PostsService {
     // Deletar o post
     await this.postModel.deleteOne({ _id: postId });
   }
-  async postILike(currentUser: CurrentUserDto): Promise<PostResponseDto[] | null> {
-    // Busca os registros de LikePost do usuário e retorna os posts associados
-     const posts = await this.postModel
-      .find()
-      .populate('user', 'username')
-      .populate('image')
-      .populate('likeBy', 'username')
-      .where('likeBy').equals(currentUser.userId)
-      .exec();
+  async postILike(currentUser: CurrentUserDto, page=1, limit=10) {
+    const result = await this.postPaginateModel.paginate(
+      { likeBy: { $in: currentUser.userId } },
+      {
+        page,
+        limit,
+        populate: [
+          { path: 'user', select: 'username' },
+          { path: 'image' },
+          { path: 'likeBy', select: 'username' },
+        ],
+      },
+    );
+      if (!result || result.docs.length === 0) return null;
 
-    if (!posts || posts.length === 0) return null;
-
-    return posts.map((post) => mapPostToDto(post, currentUser));
+    return {
+      totalPages: result.totalPages,
+      page: result.page,
+      hasNextPage: result.hasNextPage,
+      posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
+    }
   }
-
-
+  
 
   async likePost(postId: string, currentUser: CurrentUserDto): Promise<boolean> {
     const post = await this.postModel
