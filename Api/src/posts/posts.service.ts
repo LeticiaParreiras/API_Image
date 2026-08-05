@@ -63,7 +63,7 @@ export class PostsService {
     return {
       id: post._id.toString(),
       text: post.text,
-      imageUrl: `http://localhost:3000/image/${post.image._id}`,
+      imageUrl: post.image.url,
       username: post.user.username,
       myPost: post.user.username === currentUser?.username,
       likeBy: [],
@@ -74,19 +74,29 @@ export class PostsService {
     };
   }
 
-  async getPostsByUsername(username: string, currentUser?: CurrentUserDto) {
+  async getPostsByUsername(username: string, currentUser?: CurrentUserDto, page=1, limit=10) {
     const user = await this.userService.getUserByUsername(username)
-    const posts = await this.postModel
-      .find({ user: user })
-      .populate('user', 'username')
-      .populate('image')
-      .populate('likeBy', 'username')
-      .sort({ createdAt: -1 })
-      .exec();
+    const result = await this.postPaginateModel.paginate(
+      {user: user}, 
+      {
+        page,
+        limit,
+        sort: { createdAt: -1 },
+        populate: [
+          { path: 'user', select: 'username' },
+          { path: 'image' },
+          { path: 'likeBy', select: 'username' },
+        ],
+      },
+    );
+      if (!result || result.docs.length === 0) return null;
 
-    if (!posts || posts.length === 0) return null;
-
-    return posts.map((post) => mapPostToDto(post, currentUser));
+    return {
+      totalPages: result.totalPages,
+      page: result.page,
+      hasNextPage: result.hasNextPage,
+      posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
+    }
   }
 
   async getPostsIFollow(currentUser: CurrentUserDto, page=1, limit=10) {

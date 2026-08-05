@@ -10,8 +10,8 @@ export class Image extends Document {
   @Prop({ required: true })
   mimetype: string;
 
-  @Prop({ type: Buffer }) 
-  data: Buffer;
+  @Prop()
+  url: string
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   user: User;

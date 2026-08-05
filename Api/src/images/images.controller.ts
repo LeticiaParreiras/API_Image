@@ -32,21 +32,11 @@ export class ImageController {
     }
 
     return images.map((img) => ({
-      url: `http://localhost:3000/image/${img._id}`,
+      url: img.url,
       postesAt: img.createdAt,
       username,
     }));
   }
 
-  @Get('/:id')
-  async getImageById(@Param('id') id: string, @Res() res: Response) {
-    const image = await this.ImageService.getImage(id);
-    if (!image) {
-      throw new NotFoundException('Imagem não encontrada');
-    }
-
-    res.setHeader('Content-Type', image.mimetype);
-    res.send(image.data);
-  }
 
 }

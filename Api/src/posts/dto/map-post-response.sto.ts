@@ -15,7 +15,7 @@ export function mapPostToDto(
   return {
     id: post._id.toString(),
     text: post.text,
-    imageUrl: `http://localhost:3000/image/${post.image._id}`,
+    imageUrl: post.image.url,
     username: post.user.username,
     myPost: post.user.username === currentUser?.username,
     likeBy: likeByPopulated.map((u) => ({
