@@ -1,33 +1,22 @@
-div#root{
-  display: flex;
-  flex-direction: column ;
-  justify-content: center;
-}
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
-.UploadImage{
-  margin: auto;
-  text-align: center;
-  gap: 3px;
-  justify-content: center;
-}
+@import "tailwindcss";
 
-.imgs-container{
-  max-width: 900px;
-  margin: 2rem auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem,1fr));
-  gap: 1rem;
-}
+@layer base {
+  body {
+    font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  }
 
-.imgs{
-  width: 100%;
-  max-height: fit-content;
+  .font-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  }
 
 }
+body{
+  overflow: hidden;
 
-.imgs img{
-  width: 100%;
-  border-radius: 5px;
-  box-shadow: 1px 1px 3px 1px #00000024;
-  cursor: pointer;
+}
+*{
+  scrollbar-width: thin;
+  scrollbar-color: #727372 #0a0809;
 }

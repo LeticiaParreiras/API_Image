@@ -1,13 +1,14 @@
-
-import { ListImages } from '../components/ListImages'
-import UploadImage from '../components/UploadImage';
+import NiceModal from "@ebay/nice-modal-react";
+import PostFeed from "../components/PostFeed";
+import { CreatePostModal } from "../components/CreatePostModal";
 
 const Home = () => {
+
     return(
-        <>
-        <UploadImage />
-        <ListImages/>
-        </>
+        <div className='min-h-screen w-full bg-neutral-950 text-neutral-100 flex'>
+            <button onClick={() => NiceModal.show(CreatePostModal)}>Novo post</button>
+        <PostFeed type="recent" />
+        </div>
     )
 }
 
