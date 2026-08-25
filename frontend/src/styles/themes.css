@@ -1,5 +1,5 @@
 @layer base {
-  
+  :root,
   [data-theme='light'] {
     --background: #fcfcfe;
     --foreground: #0a0a0a;
@@ -14,7 +14,7 @@
     --skeleton-base-color: #f1e1eb;
     --skeleton-highlight-color: #dfc5d2;
   }
-  :root,
+  
   [data-theme='dark'] {
     --background: #0a0a0a;
     --foreground: #fcfcfe;
