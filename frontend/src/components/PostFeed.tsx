@@ -55,7 +55,7 @@ export default function PostFeed({
       ))}
       <div ref={sentinelRef} />
       {isFetchingNextPage && <p>Carregando mais…</p>}
-      {!hasNextPage && <p className="text-center text-neutral-300">Desculpa, não temos mais posts : &#40;</p>}
+      {!hasNextPage && <p className="text-center text-muted-foreground">Desculpa, não temos mais posts : &#40;</p>}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { CreatePostModal } from "../components/CreatePostModal";
 const Home = () => {
 
     return(
-        <div className='min-h-screen w-full bg-neutral-950 text-neutral-100 flex'>
+        <div className='min-h-screen w-full flex'>
             <button onClick={() => NiceModal.show(CreatePostModal)}>Novo post</button>
         <PostFeed type="recent" />
         </div>

@@ -1,22 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
+@import 'styles/themes.css';
 @import "tailwindcss";
+@import '@fontsource/space-grotesk/400.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/600.css';
+@import '@fontsource/space-grotesk/700.css';
 
 @layer base {
   body {
+    @apply bg-background text-foreground;
     font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+      width: 100%;
+      height: 100%;
+      margin: auto;
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
   }
-
-  .font-mono {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  }
-
+  
 }
-body{
-  overflow: hidden;
 
-}
 *{
+  @apply scrollbar-thumb-muted-foreground scrollbar-track-background;
   scrollbar-width: thin;
-  scrollbar-color: #727372 #0a0809;
 }

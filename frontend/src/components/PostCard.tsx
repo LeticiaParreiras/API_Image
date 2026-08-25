@@ -9,22 +9,22 @@ interface PostProps {
 export default function Post({ post, onToggleLike }: PostProps) {
     
     return(
-        <article  className="mb-4 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+        <article  className="mb-4 overflow-hidden rounded-xl border border-border bg-card">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-pink-700 font-mono text-xs font-semibold text-white">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-muted-primary  text-xs font-semibold text-foreground">
           {post.username}
         </div>
         <div className="min-w-0">
-          <p className="truncate font-semibold text-neutral-100">
+          <p className="truncate font-semibold text-foreground">
             @{post.username}
           </p>
-          <p className="font-mono text-[11px] text-neutral-500">
+          <p className=" text-[11px] ">
             {post.createdAt}
           </p>
         </div>
         {post.myPost && (
-          <span className="ml-auto rounded-full border border-pink-500/30 bg-pink-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-pink-400">
+          <span className="ml-auto rounded-full border border-primary  bg-primary px-2 py-0.5  text-[10px] uppercase tracking-wide text-primary-foreground ">
             Você
           </span>
         )}
@@ -54,28 +54,28 @@ export default function Post({ post, onToggleLike }: PostProps) {
             className={
               post.iLike
                 ? "fill-pink-500 text-pink-500"
-                : "text-neutral-400 group-hover:text-pink-400"
+                : "text-muted-foreground group-hover:text-primary"
             }
           />
           <span
-            className={`font-mono text-sm ${
-              post.iLike ? "text-pink-500" : "text-neutral-400"
+            className={` text-sm ${
+              post.iLike ? "text-primary" : "text-muted-foreground"
             }`}
           >
             {post.numberLikes}
           </span>
         </button>
  
-        <div className="flex items-center gap-1.5 text-neutral-400">
+        <div className="flex items-center gap-1.5 text-muted-foreground">
           <MessageCircle size={20} />
-          <span className="font-mono text-sm">{post.commentsCount}</span>
+          <span className=" text-sm">{post.commentsCount}</span>
         </div>
       </div>
  
       {/* Texto */}
       {post.text && (
-        <p className="px-4 pb-4 pt-2 text-sm leading-relaxed text-neutral-200">
-          <span className="font-semibold text-neutral-100">
+        <p className="px-4 pb-4 pt-2 text-sm leading-relaxed text-muted-foreground">
+          <span className="font-semibold text-muted-foreground">
             @{post.username}
           </span>{" "}
           {post.text}

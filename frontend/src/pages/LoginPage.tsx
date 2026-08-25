@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { loginSchema, type LoginFormValues } from '../lib/schemas';
 import { useLogin } from '../hooks/AuthMutation';
+import { Input } from '../shared/Input';
+import { Button } from '../shared/Button';
 
 
 export function LoginPage() {
@@ -32,39 +34,38 @@ export function LoginPage() {
       footer={
         <>
           Ainda não tem conta?{' '}
-          <Link to="/register" className="text-pink-500 hover:text-pink-400">
+          <Link to="/register" className="text-primary hover:opacity-80">
             Criar conta
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div>
-          <input
+          <Input
             type="email"
             autoComplete="email"
-            placeholder="email"
+            label='E-mail'
+            error={errors.email?.message}
+            placeholder="seu-email@gmail.com"
             {...register('email')}
           />
-          {errors.email?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.email.message}</p>
-          )}
+
         </div>
 
         <div>
-          <input
+          <Input
             type="password"
             autoComplete="current-password"
-            placeholder="senha"
+            label='Senha'
+            error={errors.password?.message}
+            placeholder="Sua senha"
             {...register('password')}
           />
-          {errors.password?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.password.message}</p>
-          )}
           <div className="mt-2 text-right">
             <Link
               to="/forgot-password"
-              className="font-mono text-xs text-neutral-500 hover:text-pink-500"
+              className=" text-xs text-muted-foreground hover:text-primary"
             >
               Esqueceu a senha?
             </Link>
@@ -77,13 +78,14 @@ export function LoginPage() {
   </p>
 )}
 
-        <button
+        <Button
+        variant='primary'
           type="submit"
           disabled={login.isPending}
-          className="w-full rounded-md bg-pink-500 py-2.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-pink-400 disabled:opacity-50"
+          className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-pink-400 disabled:opacity-50"
         >
           {login.isPending ? 'Entrando…' : 'Entrar'}
-        </button>
+        </Button>
       </form>
     </AuthLayout>
   );

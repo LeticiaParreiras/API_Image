@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../components/AuthLayout';
 import { registerSchema, type RegisterFormValues } from '../lib/schemas';
 import { useRegister } from '../hooks/AuthMutation';
+import { Input } from '../shared/Input';
+import { Button } from '../shared/Button';
 
 
 export function RegisterPage() {
@@ -42,60 +44,45 @@ export function RegisterPage() {
       footer={
         <>
           Já tem conta?{' '}
-          <Link to="/login" className="text-pink-500 hover:text-pink-400">
+          <Link to="/login" className="text-primary hover:opacity-80">
             Entrar
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-        <div>
-          <input
+      <form onSubmit={handleSubmit(onSubmit)} noValidate >
+          <Input
+            label='Username'
             type="text"
             autoComplete="username"
+            error={errors.username?.message}
             placeholder="seu_usuario"
             {...register('username')}
           />
-          {errors.username?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.username.message}</p>
-          )}
-        </div>
-
-        <div>
-          <input
+          <Input
             type="text"
+            label='Nome'
             autoComplete="name"
             placeholder="seu nome"
+            error={errors.name?.message}
             {...register('name')}
           />
-          {errors.name?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.name.message}</p>
-          )}
-        </div>
-
-        <div>
-          <input
+          <Input
             type="email"
+            label='E-mail'
             autoComplete="email"
-            placeholder="voce@exemplo.com"
+            placeholder="seu-email@exemplo.com"
             {...register('email')}
           />
-          {errors.email?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <input
+            <Input
             type="password"
+            label='Senha'
+            error={errors.password?.message}
             autoComplete="new-password"
-            placeholder="••••••••"
+            placeholder="Sua senha"
             {...register('password')}
           />
-          {errors.password?.message && (
-            <p className="mt-2 text-xs text-red-400">{errors.password.message}</p>
-          )}
-
+  
           {password.length > 0 && (
             <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
               {checks.map((check) => (
@@ -110,21 +97,20 @@ export function RegisterPage() {
               ))}
             </ul>
           )}
-        </div>
 
         {registerUser.isError && (
   <p className="text-red-400">
     {registerUser.error.response?.data?.message ?? 'Não foi possível entrar. Tente novamente.'}
   </p>
 )}
-
-        <button
+        <Button
+        variant='primary'
           type="submit"
           disabled={registerUser.isPending}
           className="w-full rounded-md bg-pink-500 py-2.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-pink-400 disabled:opacity-50"
         >
           {registerUser.isPending ? 'Criando conta…' : 'Criar conta'}
-        </button>
+        </Button>
       </form>
     </AuthLayout>
   );
