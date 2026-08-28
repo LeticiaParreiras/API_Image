@@ -73,7 +73,10 @@ export class AuthService {
       throw new BadRequestException('Credencial invalid');
     }
     const payload = { username: user.username, sub: user._id };
-    return { accessToken: this.jwtService.sign(payload) };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      username: user.username,
+    };
   }
 
   async forgotPassword(forgotPasswordBody: ForgotPasswordDto) {
@@ -125,31 +128,44 @@ export class AuthService {
   async changePasswordforgotten(
     changePasswordforgottenBody: ChangePasswordforgottenDto,
   ) {
-     const user = await this.verifyTokenResetPassword(changePasswordforgottenBody);
-    if(!user){
-      throw new BadRequestException('Token invalid'); 
+    const user = await this.verifyTokenResetPassword(
+      changePasswordforgottenBody,
+    );
+    if (!user) {
+      throw new BadRequestException('Token invalid');
     }
-    const newPassword = await this.cryptoPassword(changePasswordforgottenBody.password,);
-      user.password = newPassword;
-      user.passwordResetExpires=new Date()
-      return user.save();
+    const newPassword = await this.cryptoPassword(
+      changePasswordforgottenBody.password,
+    );
+    user.password = newPassword;
+    user.passwordResetExpires = new Date();
+    return user.save();
+  }
+  async changePassword(
+    currentUserBody: CurrentUserDto,
+    changePasswordBody: changePasswordDto,
+  ) {
+    const user = await this.userModel
+      .findById(currentUserBody.userId)
+      .select('password')
+      .exec();
+    if (!user) {
+      throw new BadRequestException('ERRO user not found');
     }
-  async changePassword(currentUserBody: CurrentUserDto, changePasswordBody:changePasswordDto){
-    const user = await this.userModel.findById(currentUserBody.userId).
-      select('password').exec()
-      if(!user){
-        throw new BadRequestException('ERRO user not found')
-      }
-    const storagePassword = user.password
+    const storagePassword = user.password;
     const [salt, storagePasswordHash] = storagePassword.split('.');
-    const bodyPasswordHash = (await scrypt(changePasswordBody.currentPassword, salt, 32)) as Buffer;
+    const bodyPasswordHash = (await scrypt(
+      changePasswordBody.currentPassword,
+      salt,
+      32,
+    )) as Buffer;
     if (storagePasswordHash !== bodyPasswordHash.toString('hex')) {
       throw new BadRequestException('Credencial invalid');
     }
-    const newPassword = await this.cryptoPassword(changePasswordBody.newPassword,);
-    user.password = newPassword
-    return user.save()
+    const newPassword = await this.cryptoPassword(
+      changePasswordBody.newPassword,
+    );
+    user.password = newPassword;
+    return user.save();
   }
-    
-  }
-
+}

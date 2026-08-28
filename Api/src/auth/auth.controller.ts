@@ -43,7 +43,7 @@ export class AuthController {
       path: '/',
     });
 
-    return { message: 'Login successful' };
+    return { username: result.username};
   }
 
   @Post('forgot-password')
