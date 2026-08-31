@@ -23,6 +23,9 @@ export class User extends Document {
   
   @Prop({select: false})
   passwordResetExpires: Date;
+
+ @Prop()
+  createdAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

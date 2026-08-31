@@ -16,12 +16,12 @@ export class FollowService {
   async create(followedUsename: string, follower: CurrentUserDto) {
     const followedUser = await this.userService.getUserByUsername(followedUsename);
 
-    if (followedUser._id.toString() === follower.userId) {
+    if (followedUser.id.toString() === follower.userId) {
       throw new BadRequestException('You cant follow yourself');
     }
 
     const alreadyFollow = await this.iFollow(
-      followedUser._id.toString(),
+      followedUser.id.toString(),
       follower,
     )
     if (alreadyFollow) {
@@ -29,7 +29,7 @@ export class FollowService {
     }
 
     return this.followModel.create({
-      followed: followedUser._id,
+      followed: followedUser.id,
       follower: new Types.ObjectId(follower.userId),
     });
   }
@@ -44,7 +44,7 @@ export class FollowService {
   async getFollowers(followedUsename: string) {
     const followedUser = await this.userService.getUserByUsername(followedUsename);
     return this.followModel
-      .find({ followed: followedUser })
+      .find({ followed: followedUser.id })
       .populate('follower', 'username name')
       .exec();
   }
@@ -52,7 +52,7 @@ export class FollowService {
   async getUsersFollow(followerUsername: string) {
     const followerUser = await this.userService.getUserByUsername(followerUsername);
     return this.followModel
-      .find({ follower: followerUser })
+      .find({ follower: followerUser.id })
       .populate('followed', 'username name')
       .exec();
   }
@@ -60,7 +60,7 @@ export class FollowService {
   async removeFollow(followedUsername: string, follower: CurrentUserDto) {
     const followedUser = await this.userService.getUserByUsername(followedUsername);
     const deleted = await this.followModel.findOneAndDelete({
-      followed: followedUser,
+      followed: followedUser.id,
       follower: new Types.ObjectId(follower.userId),
     });
 
