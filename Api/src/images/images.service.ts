@@ -67,7 +67,7 @@ private uploadFromBuffer(buffer: Buffer): Promise<string> {
       return null;
     }
 
-    return this.imageModel.find({ user: user._id }).exec();
+    return this.imageModel.find({ user: user.id }).exec();
   }
 
   async deleteImage(id: string, userDto: CurrentUserDto) {

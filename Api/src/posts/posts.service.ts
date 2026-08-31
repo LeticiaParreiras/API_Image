@@ -32,20 +32,26 @@ export class PostsService {
     createPostDto: CreatePostDto,
     user: CurrentUserDto,
   ): Promise<Post> {
-    if (!file) {
-      throw new BadRequestException('Imagem é obrigatória');
+    try{
+      if (!file) {
+        throw new BadRequestException('Imagem é obrigatória');
+      }
+  
+      const image = await this.imageService.saveImage(file, user);
+  
+      const post = new this.postModel({
+        image: image._id,
+        text: createPostDto.text,
+        user: new Types.ObjectId(user.userId),
+        comments: [],
+      });
+  
+      return post.save();
     }
-
-    const image = await this.imageService.saveImage(file, user);
-
-    const post = new this.postModel({
-      image: image._id,
-      text: createPostDto.text,
-      user: new Types.ObjectId(user.userId),
-      comments: [],
-    });
-
-    return post.save();
+    catch(error){
+      console.log(error)
+      throw new BadRequestException(error.massage?? "error in post a new Post");
+    }
   }
 
   async getPostById(id: string, currentUser?: CurrentUserDto): Promise<PostResponseDto> {
@@ -75,9 +81,9 @@ export class PostsService {
   }
 
   async getPostsByUsername(username: string, currentUser?: CurrentUserDto, page=1, limit=10) {
-    const user = await this.userService.getUserByUsername(username)
+    const user = await this.userService.getUserByUsername(username);
     const result = await this.postPaginateModel.paginate(
-      {user: user}, 
+      { user: user.id },
       {
         page,
         limit,
@@ -89,11 +95,11 @@ export class PostsService {
         ],
       },
     );
-      if (!result || result.docs.length === 0) return null;
+      
 
     return {
       totalPages: result.totalPages,
-      page: result.page,
+      page: result.page??[],
       hasNextPage: result.hasNextPage,
       posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
     }
@@ -116,11 +122,11 @@ export class PostsService {
         ],
       },
     );
-      if (!result || result.docs.length === 0) return null;
+      
 
     return {
       totalPages: result.totalPages,
-      page: result.page,
+      page: result.page??[],
       hasNextPage: result.hasNextPage,
       posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
     }
@@ -140,11 +146,11 @@ export class PostsService {
         ],
       },
     );
-      if (!result || result.docs.length === 0) return null;
+      
 
     return {
       totalPages: result.totalPages,
-      page: result.page,
+      page: result.page??[],
       hasNextPage: result.hasNextPage,
       posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
     }
@@ -181,11 +187,11 @@ export class PostsService {
         ],
       },
     );
-      if (!result || result.docs.length === 0) return null;
+      
 
     return {
       totalPages: result.totalPages,
-      page: result.page,
+      page: result.page??[],
       hasNextPage: result.hasNextPage,
       posts: result.docs.map((post) => mapPostToDto(post, currentUser)),
     }
