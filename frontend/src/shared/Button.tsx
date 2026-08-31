@@ -7,12 +7,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseClasses =
-  'flex cursor-pointer items-center justify-center font-medium text-sm gap-2  transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-80 px-4 py-3'
+  'flex cursor-pointer items-center justify-center font-medium text-sm gap-2 rounded-xl  transition-opacity hover:opacity-60 disabled:cursor-not-allowed disabled:opacity-50 p-3'
 
 const variantClasses = {
-  primary: 'bg-primary text-primary-foreground font-semibold rounded-xl ',
-  secondary: 'bg-secondary-button border border-border rounded-3xl px-4 ',
-  ghost: 'rounded-lg text-foreground ',
+  primary: 'bg-primary text-primary-foreground font-semibold ',
+  secondary: 'bg-secondary-button border border-border ',
+  ghost: 'rounded-lg text-foreground hover:drop-shadow-sm  ',
 }
 
 export function Button({

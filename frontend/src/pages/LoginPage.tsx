@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,11 +7,13 @@ import { loginSchema, type LoginFormValues } from '../lib/schemas';
 import { useLogin } from '../hooks/AuthMutation';
 import { Input } from '../shared/Input';
 import { Button } from '../shared/Button';
+import { AuthContext } from '../context/Auth/AuthContext';
 
 
 export function LoginPage() {
   const navigate = useNavigate();
   const login = useLogin();
+  const { loginUsername } = useContext(AuthContext);
 
   const {
     register,
@@ -22,8 +25,12 @@ export function LoginPage() {
 
   const onSubmit = (data: LoginFormValues) => {
     login.mutate(data, {
-      onSuccess: () => navigate('/'),
-    });
+
+      onSuccess: (response) => {
+        loginUsername('username' in response ? response.username ?? response.username : null)
+        navigate('/home')}
+    }
+  );
   };
 
   return (

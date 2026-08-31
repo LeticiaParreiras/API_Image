@@ -2,7 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { axiosClient } from '../lib/axios';
 import type { PaginatedPosts, Post } from '../lib/postInterfaces';
  
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 type FeedType = "recent" | "following" | "user";
 
 interface UsePostsParams {
@@ -16,6 +16,7 @@ async function fetchPosts(page: number, endpoint: string): Promise<PaginatedPost
   });
 
   return response.data;
+
 }
  
 export function usePosts({ type, username }: UsePostsParams){

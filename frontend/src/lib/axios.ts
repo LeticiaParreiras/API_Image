@@ -1,5 +1,7 @@
 // src/lib/axios.ts
+import NiceModal from '@ebay/nice-modal-react';
 import axios from 'axios';
+import { NoLoggedModal } from '../components/NoLoggedModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,11 +14,9 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // evita redirecionar se já estiver na tela de login/register
-      const isAuthPage = ['/login', '/register'].includes(window.location.pathname);
-      if (!isAuthPage) {
-        window.location.href = '/login';
-      }
+      localStorage.removeItem('username');
+      NiceModal.show(NoLoggedModal);
+      
     }
     return Promise.reject(error);
   },

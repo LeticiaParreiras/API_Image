@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { LikeBody } from "../lib/postInterfaces";
 import { axiosClient } from "../lib/axios";
+import type { CreatePostFormValues } from "../lib/postSchemas";
 
 async function postLike(postId: string, liked: boolean): Promise<void> {
   if (liked) {
@@ -20,3 +21,13 @@ export function usePostToggleLike() {
     },
   });
 }
+export async function createPost(data: CreatePostFormValues): Promise<void> {
+  const formData = new FormData();
+  formData.append('image', data.image[0]);
+  formData.append('text', data.text?? "");
+
+  await axiosClient.post('/post', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}
+

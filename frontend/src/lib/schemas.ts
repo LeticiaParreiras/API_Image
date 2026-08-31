@@ -15,8 +15,8 @@ export const registerSchema = z
   .object({
     username: z
       .string()
-      .min(3, 'Mínimo de 3 caracteres')
-      .max(20, 'Máximo de 20 caracteres')
+      .min(4, 'Mínimo de 4 caracteres')
+      .max(10, 'Máximo de 10 caracteres')
       .regex(/^[a-zA-Z0-9_]+$/, 'Use apenas letras, números e _'),
     name: z
     .string() 

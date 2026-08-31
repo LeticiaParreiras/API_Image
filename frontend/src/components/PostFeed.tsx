@@ -45,7 +45,8 @@ export default function PostFeed({
   }
 
   return (
-    <div className="max-h-[90vh] overflow-y-auto p-4 m-auto">
+    <div className="overflow-y-auto
+ p-4 m-auto">
       {posts.map((post) => (
         <Post
           post={post}
